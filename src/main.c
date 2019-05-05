@@ -52,6 +52,7 @@ typedef struct
 {
     bool active;
     int type;
+    int health;
     int x;
     int y;
 } enemy_t;
@@ -60,7 +61,8 @@ gfx_sprite_t *bullets[3];
 bool isPlaying = true;
 bool inGame = false;
 bool inMenu = true;
-int score;
+bool invincible = false;
+int score = 0, lives = 3;
 
 int i;
 
@@ -75,6 +77,7 @@ void setup()
     subtitle = gfx_MallocSprite(subtitle_width, subtitle_height);
     zx7_Decompress(subtitle, subtitle_compressed);
     wrench = gfx_MallocSprite(wrench_width, wrench_height);
+    zx7_Decompress(wrench, wrench_compressed);
     for (i = 0; i < 7; i++)
     {
         enemies[i] = gfx_MallocSprite(dimensions[i][0], dimensions[i][1]);
@@ -97,10 +100,17 @@ bool left;
 bool up;
 bool down;
 kb_key_t arrows; //arrow keys
-int x, y;
-
+int x = 0, y = 103;
+int invincibleDelay;
 void updatePlayer()
 {
+    if (invincible){
+        invincibleDelay++;
+        if (invincibleDelay==40){
+            invincible = false;
+            invincibleDelay = false;
+        }
+    }
     arrows = kb_Data[7];       //kb data bit 7 has arrows, among other stuff
     right = arrows & kb_Right; //check if right key pressed
     left = arrows & kb_Left;
@@ -110,50 +120,50 @@ void updatePlayer()
     {
         if (right)
         {
-            x += 2;
+            x += 3;
         }
         if (left)
         {
-            x -= 2;
+            x -= 3;
         }
         if (down)
         {
-            y += 2;
+            y += 3;
         }
         if (up)
         {
-            y -= 2;
+            y -= 3;
         }
     }
     if (x < 0)
     {
-        x += 2;
+        x += 3;
     }
     if (y < 0)
     {
-        y += 2;
+        y += 3;
     }
     if (x > 256)
     {
-        x -= 2;
+        x -= 3;
     }
-    if (y > 223)
+    if (y > 183)
     {
-        y -= 2;
+        y -= 3;
     }
 }
 
-bool bulletDelay = false; //don't shoot during this time
-int delayTick = 0;        //frame interval
+bool canShoot = true; //don't shoot during this time
+int delayTick = 0;    //frame interval
 void updateBullets()
 {
-    if (delayTick == 15)
+    if (delayTick == 10)
     {
-        bulletDelay = false; //now we can shoot
-        delayTick = 0;       //reset frame interval
+        canShoot = true; //now we can shoot
+        delayTick = 0;   //reset frame interval
     }
     delayTick++;
-    if (kb_Data[1] == kb_2nd && !bulletDelay)
+    if (kb_Data[1] == kb_2nd && canShoot)
     {
         for (i = 0; i < 100; i++)
         {
@@ -162,8 +172,8 @@ void updateBullets()
                 bulletLocations[i].x = x + 64; //move to end of player
                 bulletLocations[i].y = y + 9;  //x to player x, offset by around half
                 bulletLocations[i].active = true;
-                bulletDelay = true; //turn off shooting
-                break;              // we don't need to waste time iterating, so break.
+                canShoot = false; //turn off shooting
+                break;            // we don't need to waste time iterating, so break.
             }
         }
     }
@@ -180,32 +190,32 @@ void updateBullets()
     }
 }
 
-//never really bothered to make a function for this,  but you need to play around with lists and callbacks
+//never really bothered to make a function for this,
+//but you need to play around with lists and callbacks
 int spawnTick = 0;
 int j;
 void updateEnemies()
 {
-    if (spawnTick == 10)
+    if (spawnTick == 20)
     {
         if (randInt(0, 1) == 1)
         {
             for (i = 0; i < 40; i++)
             {
-                if (!enemyLocations[i].active) //Same as before, function isn't really needed, as it only makes code shorter. Exec time is same
+                if (!enemyLocations[i].active) //Same as before, function
+                //isn't really needed, as it only makes code shorter. Exec time is same
                 {
                     int type = randInt(0, 5);
                     enemyLocations[i].type = type;
+                    enemyLocations[i].health = type + 1;
                     enemyLocations[i].x = 320 - dimensions[type][0];
-                    enemyLocations[i].y = randInt(0, 240 - dimensions[type][1]);
+                    enemyLocations[i].y = randInt(0, 200 - dimensions[type][1]);
                     enemyLocations[i].active = true;
                     break;
                 }
             }
         }
-        if (spawnTick == 10)
-        {
-            spawnTick = 0;
-        }
+        spawnTick = 0;
     }
     spawnTick++;
     for (i = 0; i < 40; i++)
@@ -213,21 +223,48 @@ void updateEnemies()
         if (enemyLocations[i].active)
         {
             enemyLocations[i].x -= 2;
+            if (y - enemyLocations[i].y < 0)
+            {
+                enemyLocations[i].y--;
+            }
+            else
+            {
+                enemyLocations[i].y++;
+            }
             if (enemyLocations[i].x < -dimensions[enemyLocations[i].type][0])
             {
                 score -= enemyLocations[i].type * 1000;
                 enemyLocations[i].active = false;
                 continue;
             }
+            if (!invincible && (x - 64 - enemyLocations[i].x) < 0 && (y - enemyLocations[i].y + ((int)round(dimensions[enemyLocations[i].type][1] / 2))) < 0)
+            {
+                lives--;
+                invincible = true;
+                for (j = 0; j < 100; j++)
+                {
+                    bulletLocations[i].active = false;
+                }
+                for (i = 0; i < 40; i++)
+                {
+                    enemyLocations[i].active = false;
+                }
+            }
+
             for (j = 0; j < 100; j++)
             {
                 if (bulletLocations[j].active)
                 {
-                    if (abs(bulletLocations[j].x - 16 - enemyLocations[i].x) < 5 && abs(bulletLocations[j].y - enemyLocations[i].y) < 5)
+                    if (abs(bulletLocations[j].x - 16 - enemyLocations[i].x) < 5 && abs((bulletLocations[j].y - 7) - (enemyLocations[i].y + ((int)round(dimensions[enemyLocations[i].type][1] / 2)))) < 5)
+                    {
+                        enemyLocations[i].health--;
+                        break;
+                    }
+                    if (enemyLocations[i].health < 1)
                     {
                         score += enemyLocations[i].type * 1000;
                         enemyLocations[i].active = false;
-                        break;
+                        bulletLocations[j].active = false;
                     }
                 }
             }
@@ -277,14 +314,14 @@ void drawSprites()
 bool option = true;
 void drawMenu()
 {
-    gfx_FillScreen(6);
+    gfx_FillScreen(129);
     gfx_TransparentSprite(title, 32, 40);      //Spitfire
     gfx_TransparentSprite(subtitle, 107, 145); //Air superiority
     if (option)
     {
         gfx_SetTextBGColor(5); //Highlighted
         gfx_PrintStringXY("Play", 100, 169);
-        gfx_SetTextBGColor(255); //reset
+        gfx_SetTextBGColor(255); //Reset
         gfx_PrintStringXY("Quit", 220 - gfx_GetStringWidth("Quit"), 169);
     }
     else
@@ -341,6 +378,7 @@ void main()
             {
                 inMenu = true;
                 inGame = false;
+                score = 0;
             }
         }
     }
