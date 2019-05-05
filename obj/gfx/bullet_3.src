@@ -1,0 +1,53 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -noreduceopt -nomodsect -peephole -globalopt
+; -localcse -const=ROM 
+	FILE	"SRC\GFX\BULLET_3.C"
+	.assume ADL=1
+	SEGMENT DATA
+_bullet_3_compressed:
+	DB	16
+	DB	34
+	DB	7
+	DB	0
+	DB	92
+	DB	0
+	DB	18
+	DB	0
+	DB	96
+	DB	12
+	DB	70
+	DB	70
+	DB	75
+	DB	79
+	DB	70
+	DB	11
+	DB	77
+	DB	12
+	DB	78
+	DB	0
+	DB	75
+	DB	203
+	DB	16
+	DB	11
+	DB	201
+	DB	25
+	DB	0
+	DB	163
+	DB	16
+	DB	70
+	DB	227
+	DB	31
+	DB	227
+	DB	63
+	DB	224
+	DB	95
+	DB	0
+	DB	16
+	XDEF _bullet_3_compressed
+;    1	// convpng v7.0
+;    2	#include <stdint.h>
+;    3	#include "sprites.h"
+;    4	
+;    5	// 8 bpp image
+;    6	uint8_t bullet_3_compressed[38] = {
+	END

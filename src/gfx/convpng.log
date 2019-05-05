@@ -1,0 +1,28 @@
+opened convpng.ini
+
+--- sprites (C) ---
+building palette with [256] available indices ...
+built palette with [256] indices.
+palette quality : 99.83%
+transparent color index : 0
+transparent color : 0x7C1F
+15:
+ bomb : 99.93% (66 > 43 bytes)
+ bullet_1 : 99.60% (114 > 39 bytes)
+ bullet_2 : 99.59% (114 > 37 bytes)
+ bullet_3 : 99.60% (114 > 38 bytes)
+ enemy_1 : 99.25% (617 > 174 bytes)
+ enemy_2 : 99.88% (1377 > 355 bytes)
+ enemy_3 : 99.91% (1172 > 344 bytes)
+ enemy_4 : 99.43% (1234 > 308 bytes)
+ enemy_5 : 99.91% (1769 > 375 bytes)
+ enemy_6 : 99.73% (3356 > 678 bytes)
+ enemy_7 : 99.99% (1684 > 288 bytes)
+ player : 99.81% (1090 > 341 bytes)
+ subtitle : 100.00% (1500 > 147 bytes)
+ title : 99.92% (21677 > 2692 bytes)
+ wrench : 100.00% (1026 > 61 bytes)
+
+converted in 0 s
+
+finished!

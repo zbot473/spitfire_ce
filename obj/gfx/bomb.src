@@ -1,0 +1,58 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -noreduceopt -nomodsect -peephole -globalopt
+; -localcse -const=ROM 
+	FILE	"SRC\GFX\BOMB.C"
+	.assume ADL=1
+	SEGMENT DATA
+_bomb_compressed:
+	DB	8
+	DB	10
+	DB	8
+	DB	0
+	DB	0
+	DB	18
+	DB	0
+	DB	240
+	DB	5
+	DB	6
+	DB	4
+	DB	206
+	DB	173
+	DB	181
+	DB	250
+	DB	8
+	DB	6
+	DB	7
+	DB	242
+	DB	8
+	DB	18
+	DB	206
+	DB	206
+	DB	255
+	DB	16
+	DB	7
+	DB	12
+	DB	9
+	DB	183
+	DB	7
+	DB	181
+	DB	8
+	DB	122
+	DB	23
+	DB	32
+	DB	181
+	DB	185
+	DB	0
+	DB	6
+	DB	224
+	DB	55
+	DB	0
+	DB	16
+	XDEF _bomb_compressed
+;    1	// convpng v7.0
+;    2	#include <stdint.h>
+;    3	#include "sprites.h"
+;    4	
+;    5	// 8 bpp image
+;    6	uint8_t bomb_compressed[43] = {
+	END
