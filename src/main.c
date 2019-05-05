@@ -20,16 +20,16 @@ void updateBullets();
 void drawMenu();
 void drawSprites();
 
-gfx_rletsprite_t *player, *bomb, *title, *subtitle, *wrench;
-gfx_rletsprite_t *enemies[7];
-int dimensions[7][3] = {
-    {enemy_1_width, enemy_1_height, enemy_1_size},
-    {enemy_2_width, enemy_2_height, enemy_2_size},
-    {enemy_3_width, enemy_3_height, enemy_3_size},
-    {enemy_4_width, enemy_4_height, enemy_4_size},
-    {enemy_5_width, enemy_5_height, enemy_5_size},
-    {enemy_6_width, enemy_6_height, enemy_6_size},
-    {enemy_7_width, enemy_7_height, enemy_7_size}};
+gfx_sprite_t *player, *bomb, *title, *subtitle, *wrench;
+gfx_sprite_t *enemies[7];
+int dimensions[7][2] = {
+    {enemy_1_width, enemy_1_height},
+    {enemy_2_width, enemy_2_height},
+    {enemy_3_width, enemy_3_height},
+    {enemy_4_width, enemy_4_height},
+    {enemy_5_width, enemy_5_height},
+    {enemy_6_width, enemy_6_height},
+    {enemy_7_width, enemy_7_height}};
 uint8_t *enemiesCompressed[6] = {
     enemy_1_compressed,
     enemy_2_compressed,
@@ -56,7 +56,7 @@ typedef struct
     int y;
 } enemy_t;
 enemy_t enemyLocations[40];
-gfx_rletsprite_t *bullets[3];
+gfx_sprite_t *bullets[3];
 bool isPlaying = true;
 bool inGame = false;
 bool inMenu = true;
@@ -66,25 +66,23 @@ int i;
 
 void setup()
 {
-    player = gfx_MallocRLETSprite(player_size); //allocate memory by pixel dimensions
+    player = gfx_MallocSprite(player_width, player_height); //allocate memory by pixel dimensions
     zx7_Decompress(player, player_compressed);              //decompress sprite
-    bomb = gfx_MallocRLETSprite(bomb_size);
+    bomb = gfx_MallocSprite(bomb_width, bomb_height);
     zx7_Decompress(bomb, bomb_compressed);
-    title = gfx_MallocRLETSprite(title_size);
+    title = gfx_MallocSprite(255, 85);
     zx7_Decompress(title, title_compressed);
-    subtitle = gfx_MallocRLETSprite(subtitle_size);
+    subtitle = gfx_MallocSprite(subtitle_width, subtitle_height);
     zx7_Decompress(subtitle, subtitle_compressed);
-    wrench = gfx_MallocRLETSprite(wrench_size);
-    zx7_Decompress(wrench, wrench_compressed);
-
-    for (i = 0; i < 6; i++)
+    wrench = gfx_MallocSprite(wrench_width, wrench_height);
+    for (i = 0; i < 7; i++)
     {
-        enemies[i] = gfx_MallocRLETSprite(dimensions[i][2]);
+        enemies[i] = gfx_MallocSprite(dimensions[i][0], dimensions[i][1]);
         zx7_Decompress(enemies[i], enemiesCompressed[i]);
     }
     for (i = 0; i < 3; i++)
     {
-        bullets[i] = gfx_MallocRLETSprite(bullet_1_size);
+        bullets[i] = gfx_MallocSprite(16, 7);
         zx7_Decompress(bullets[i], bulletsCompressed[i]);
     }
 
@@ -217,17 +215,17 @@ void updateEnemies()
             enemyLocations[i].x -= 2;
             if (enemyLocations[i].x < -dimensions[enemyLocations[i].type][0])
             {
-                score -= enemyLocations[i].type*1000;
+                score -= enemyLocations[i].type * 1000;
                 enemyLocations[i].active = false;
                 continue;
             }
-            for ( j = 0; j < 100; j++)
+            for (j = 0; j < 100; j++)
             {
                 if (bulletLocations[j].active)
                 {
                     if (abs(bulletLocations[j].x - 16 - enemyLocations[i].x) < 5 && abs(bulletLocations[j].y - enemyLocations[i].y) < 5)
                     {
-                        score += enemyLocations[i].type*1000;
+                        score += enemyLocations[i].type * 1000;
                         enemyLocations[i].active = false;
                         break;
                     }
@@ -253,12 +251,12 @@ void drawSprites()
     }
     frame++;
     gfx_FillScreen(1);
-    gfx_RLETSprite_NoClip(player, x, y);
+    gfx_TransparentSprite_NoClip(player, x, y);
     for (i = 0; i < 100; i++)
     {
         if (bulletLocations[i].active)
         {
-            gfx_RLETSprite_NoClip(bullets[frameTick], bulletLocations[i].x, bulletLocations[i].y);
+            gfx_TransparentSprite_NoClip(bullets[frameTick], bulletLocations[i].x, bulletLocations[i].y);
             //draw the bullet frame at the corrdinates
         }
     }
@@ -266,22 +264,22 @@ void drawSprites()
     {
         if (enemyLocations[i].active)
         {
-            gfx_RLETSprite(enemies[enemyLocations[i].type], enemyLocations[i].x, enemyLocations[i].y);
+            gfx_TransparentSprite(enemies[enemyLocations[i].type], enemyLocations[i].x, enemyLocations[i].y);
             //draw the bullet frame at the corrdinates
         }
     }
-    gfx_FillRectangle_NoClip(0,200,320,40);
-    gfx_PrintStringXY("Score: ",20,216);
-    gfx_PrintInt(score,8);
-    gfx_RLETSprite_NoClip(wrench,288,208);
+    gfx_FillRectangle_NoClip(0, 200, 320, 40);
+    gfx_PrintStringXY("Score: ", 20, 216);
+    gfx_PrintInt(score, 8);
+    gfx_TransparentSprite_NoClip(wrench, 288, 208);
     gfx_BlitBuffer();
 }
 bool option = true;
 void drawMenu()
 {
     gfx_FillScreen(6);
-    gfx_RLETSprite(title, 32, 40);      //Spitfire
-    gfx_RLETSprite(subtitle, 107, 145); //Air superiority
+    gfx_TransparentSprite(title, 32, 40);      //Spitfire
+    gfx_TransparentSprite(subtitle, 107, 145); //Air superiority
     if (option)
     {
         gfx_SetTextBGColor(5); //Highlighted
