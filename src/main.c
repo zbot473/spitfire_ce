@@ -13,6 +13,10 @@
 #include <keypadc.h>
 #include "gfx/sprites.h"
 
+bool checkOverlap(int x1, int x2, int y1, int y2)
+{
+    return x1 <= y2 && y1 <= x2;
+}
 void setup();
 void updatePlayer();
 void updateEnemies();
@@ -104,9 +108,11 @@ int x = 0, y = 103;
 int invincibleDelay;
 void updatePlayer()
 {
-    if (invincible){
+    if (invincible)
+    {
         invincibleDelay++;
-        if (invincibleDelay==40){
+        if (invincibleDelay == 40)
+        {
             invincible = false;
             invincibleDelay = false;
         }
@@ -194,6 +200,7 @@ void updateBullets()
 //but you need to play around with lists and callbacks
 int spawnTick = 0;
 int j;
+bool hit, test;
 void updateEnemies()
 {
     if (spawnTick == 20)
@@ -223,12 +230,17 @@ void updateEnemies()
         if (enemyLocations[i].active)
         {
             enemyLocations[i].x -= 2;
+
             if (y - enemyLocations[i].y < 0)
             {
                 enemyLocations[i].y--;
             }
             else
             {
+                if (y - enemyLocations[i].y == 0)
+                {
+                    continue;
+                }
                 enemyLocations[i].y++;
             }
             if (enemyLocations[i].x < -dimensions[enemyLocations[i].type][0])
@@ -237,29 +249,25 @@ void updateEnemies()
                 enemyLocations[i].active = false;
                 continue;
             }
-            if (!invincible && (x - 64 - enemyLocations[i].x) < 0 && (y - enemyLocations[i].y + ((int)round(dimensions[enemyLocations[i].type][1] / 2))) < 0)
+            test = (checkOverlap(x, x + 64, enemyLocations[i].x, enemyLocations[i].x + dimensions[enemyLocations[i].type][0]) && checkOverlap(y, y + 17, enemyLocations[i].y, enemyLocations[i].y + dimensions[enemyLocations[i].type][0]));
+            if (!invincible && !hit && test)
             {
                 lives--;
                 invincible = true;
-                for (j = 0; j < 100; j++)
-                {
-                    bulletLocations[i].active = false;
-                }
-                for (i = 0; i < 40; i++)
-                {
-                    enemyLocations[i].active = false;
-                }
             }
-
+            hit = test;
             for (j = 0; j < 100; j++)
             {
                 if (bulletLocations[j].active)
                 {
-                    if (abs(bulletLocations[j].x - 16 - enemyLocations[i].x) < 5 && abs((bulletLocations[j].y - 7) - (enemyLocations[i].y + ((int)round(dimensions[enemyLocations[i].type][1] / 2)))) < 5)
+                    test = checkOverlap(bulletLocations[j].x, bulletLocations[j].x + 16, enemyLocations[i].x, enemyLocations[i].x + dimensions[enemyLocations[i].type][0]) && checkOverlap(bulletLocations[j].y, bulletLocations[j].y + 7, enemyLocations[i].y, enemyLocations[i].y + dimensions[enemyLocations[i].type][1]);
+                    if (test && !hit)
                     {
                         enemyLocations[i].health--;
                         break;
                     }
+                    hit = test;
+
                     if (enemyLocations[i].health < 1)
                     {
                         score += enemyLocations[i].type * 1000;
@@ -308,7 +316,29 @@ void drawSprites()
     gfx_FillRectangle_NoClip(0, 200, 320, 40);
     gfx_PrintStringXY("Score: ", 20, 216);
     gfx_PrintInt(score, 8);
-    gfx_TransparentSprite_NoClip(wrench, 288, 208);
+    if (lives < 1)
+    {
+        inGame = false;
+        inMenu = true;
+        lives = 3;
+        score = 0;
+        for (i = 0; i < 100; i++)
+        {
+            bulletLocations[i].active = false;
+        }
+        for (i = 0; i < 40; i++)
+        {
+            enemyLocations[i].active = false;
+        }
+    }
+    for (i = 0; i < 3; i++)
+    {
+        if (lives >= i + 1)
+        {
+            gfx_TransparentSprite_NoClip(wrench, 280 - 32 * (i), 204);
+        }
+    }
+
     gfx_BlitBuffer();
 }
 bool option = true;
@@ -376,9 +406,18 @@ void main()
 
             if (kb_Data[6] == kb_Clear)
             {
-                inMenu = true;
                 inGame = false;
+                inMenu = true;
                 score = 0;
+                lives = 3;
+                for (i = 0; i < 100; i++)
+                {
+                    bulletLocations[i].active = false;
+                }
+                for (i = 0; i < 40; i++)
+                {
+                    enemyLocations[i].active = false;
+                }
             }
         }
     }
